@@ -134,10 +134,13 @@ static __must_check long __copy_to_user(void __user *to,
 	__pu_err;						\
 })
 
-#define put_user(x, ptr)					\
+#define put_user(x, ptr)						\
+	__put_user_check((x), (ptr), sizeof(*(ptr)))
+
+#define __put_user_check(x, ptr, size)					\
 ({								\
 	might_sleep();						\
-	access_ok(VERIFY_WRITE, ptr, sizeof(*ptr)) ?		\
+	access_ok(VERIFY_WRITE, ptr, size) ?		\
 		__put_user(x, ptr) :				\
 		-EFAULT;					\
 })
