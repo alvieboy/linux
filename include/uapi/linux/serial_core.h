@@ -215,5 +215,8 @@
 /* Energy Micro efm32 SoC */
 #define PORT_EFMUART   100
 
+/* ZPUino UART */
+#define PORT_ZPUINO   101
+
 
 #endif /* _UAPILINUX_SERIAL_CORE_H */

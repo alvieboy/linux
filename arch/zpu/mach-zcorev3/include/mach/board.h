@@ -1,0 +1,4 @@
+#ifndef __ASM_ZPUEXTREME_BOARD_H
+#define __ASM_ZPUEXTREME_BOARD_H
+
+#endif

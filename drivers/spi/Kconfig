@@ -427,6 +427,14 @@ config SPI_XILINX
 
 	  Or for the DS570, see "XPS Serial Peripheral Interface (SPI) (v2.00b)"
 
+config SPI_ZPUINO
+	tristate "ZPUino SPI controller common module"
+	depends on HAS_IOMEM && EXPERIMENTAL && PLATFORM_ZPU
+	select SPI_BITBANG
+        select GPIO_ZPUINO
+	help
+	  This exposes the SPI controller for ZPUino.
+
 config SPI_NUC900
 	tristate "Nuvoton NUC900 series SPI"
 	depends on ARCH_W90X900 && EXPERIMENTAL

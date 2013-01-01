@@ -1423,4 +1423,18 @@ config SERIAL_EFM32_UART_CONSOLE
 	depends on SERIAL_EFM32_UART=y
 	select SERIAL_CORE_CONSOLE
 
+config SERIAL_ZPUINO_ZPUINOUART
+	bool "ZPUino UART support"
+        depends on ZPU=y
+        select SERIAL_CORE
+        help
+          Driver for ZPUino Serial UART.
+
+config SERIAL_ZPUINO_ZPUINOUART_CONSOLE
+	bool "Console on ZPUINO UART"
+        depends on SERIAL_ZPUINO_ZPUINOUART=y
+        select SERIAL_CORE_CONSOLE
+        help
+          Support console on ZPUino Serial UART.
+
 endmenu

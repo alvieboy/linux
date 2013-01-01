@@ -263,6 +263,12 @@ config GPIO_GE_FPGA
 	  and write pin state) for GPIO implemented in a number of GE single
 	  board computers.
 
+config GPIO_ZPUINO
+	bool "ZPUino GPIO support"
+	depends on PLATFORM_ZPU
+	help
+          ZPUino GPIO driver
+          
 comment "I2C GPIO expanders:"
 
 config GPIO_ARIZONA
