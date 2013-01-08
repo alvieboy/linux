@@ -177,8 +177,16 @@ static struct resource uart_resource[] = {
 	}
 };
 
+static struct resource fb_resource[] = {
+	{
+		.start = ZPU_IO_SLOT(8),
+		.end   = ZPU_IO_SLOT(8) + 16,
+		.flags  = IORESOURCE_MEM,
+	}
+};
+
 static struct zpuino_spi_platform_data spi_platform_data = {
-    .gpio_cs = 36
+    .gpio_cs = 4
 };
 
 static struct platform_device spi_device = {
@@ -211,6 +219,13 @@ static struct platform_device uart_device = {
 	.id		= 2,
 	.resource	= uart_resource,
 	.num_resources	= ARRAY_SIZE(uart_resource),
+};
+
+static struct platform_device fb_device = {
+	.name		= "zpuino_fb",
+	.id		= 3,
+	.resource	= fb_resource,
+	.num_resources	= ARRAY_SIZE(fb_resource)
 };
 
 
@@ -252,6 +267,7 @@ static int __init system_device_init(void)
 	platform_device_register(&uart_device);
 	platform_device_register(&spi_device);
 	platform_device_register(&gpio_device);
+    platform_device_register(&fb_device);
 
 	spi_register_board_info(spi_board_info,
 							ARRAY_SIZE(spi_board_info));

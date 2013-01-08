@@ -86,4 +86,10 @@ extern inline void flush_pages_to_ram (unsigned long address, int n)
 #define arch_leave_lazy_cpu_mode()	do {} while (0)
 #define arch_flush_lazy_cpu_mode()	do {} while (0)
 
+extern unsigned long get_fb_unmapped_area(struct file *filp, unsigned long,
+					  unsigned long, unsigned long,
+					  unsigned long);
+
+#define HAVE_ARCH_FB_UNMAPPED_AREA
+
 #endif /* __ASM_ZPU_PGTABLE_H */

@@ -5,6 +5,7 @@ config ZPU
 	select GENERIC_IRQ_PROBE
         select PLATFORM_ZPU
         select HAS_DMA
+        select HAS_IOMEM
         select HAVE_CLK
 	help
 	  ZPU support
