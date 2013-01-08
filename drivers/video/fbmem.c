@@ -32,6 +32,7 @@
 #include <linux/device.h>
 #include <linux/efi.h>
 #include <linux/fb.h>
+#include <linux/backing-dev.h>
 
 #include <asm/fb.h>
 
@@ -41,6 +42,10 @@
      */
 
 #define FBPIXMAPSIZE	(1024 * 8)
+
+static struct backing_dev_info fb_mappable_backing_dev = {
+       .capabilities = BDI_CAP_MAP_DIRECT | BDI_CAP_READ_MAP | BDI_CAP_WRITE_MAP,
+};
 
 static DEFINE_MUTEX(registration_lock);
 struct fb_info *registered_fb[FB_MAX] __read_mostly;
@@ -1457,6 +1462,11 @@ out:
 	mutex_unlock(&info->lock);
 	if (res)
 		put_fb_info(info);
+
+	if (!res) {
+		file->f_mapping->backing_dev_info = &fb_mappable_backing_dev;
+	}
+
 	return res;
 }
 
