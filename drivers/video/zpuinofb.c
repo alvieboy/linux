@@ -37,8 +37,8 @@
 #define BYTES_PER_PIXEL	 2
 #define BITS_PER_PIXEL	 (BYTES_PER_PIXEL * 8)
 
-#define RED_SHIFT   10
-#define GREEN_SHIFT 5
+#define RED_SHIFT   5
+#define GREEN_SHIFT 10
 #define BLUE_SHIFT	0
 
 #define PALETTE_ENTRIES_NO	16	/* passed to fb_alloc_cmap() */
@@ -49,8 +49,8 @@
 static struct zpuinofb_platform_data zpuino_fb_default_pdata = {
 	.xres = 640,
 	.yres = 480,
-	.xvirt = 1024,  /* This allows scrolling */
-	.yvirt = 480,
+	.xvirt = 640, 
+	.yvirt = 1024,
 };
 
 /*
@@ -66,9 +66,9 @@ static struct fb_fix_screeninfo zpuino_fb_fix = {
 static struct fb_var_screeninfo zpuino_fb_var = {
 	.bits_per_pixel =	BITS_PER_PIXEL,
 
-	.red =		{ RED_SHIFT, 8, 0 },
-	.green =	{ GREEN_SHIFT, 8, 0 },
-	.blue =		{ BLUE_SHIFT, 8, 0 },
+	.red =		{ RED_SHIFT, 5, 0 },
+	.green =	{ GREEN_SHIFT, 5, 0 },
+	.blue =		{ BLUE_SHIFT, 5, 0 },
 	.transp =	{ 0, 0, 0 },
 
 	.activate =	FB_ACTIVATE_NOW
@@ -88,18 +88,17 @@ struct zpuinofb_drvdata {
 
 	u32		reg_ctrl_default;
 
-	//u32		pseudo_palette[PALETTE_ENTRIES_NO];
+	u32		pseudo_palette[PALETTE_ENTRIES_NO];
 					/* Fake palette of 16 colors */
 };
 
 #define to_zpuinofb_drvdata(_info) \
-	container_of(_info, struct xilinxfb_drvdata, info)
+	container_of(_info, struct zpuinofb_drvdata, info)
 
 static int
 zpuino_fb_setcolreg(unsigned regno, unsigned red, unsigned green, unsigned blue,
 	unsigned transp, struct fb_info *fbi)
 {
-#if 0
 	u32 *palette = fbi->pseudo_palette;
 
 	if (regno >= PALETTE_ENTRIES_NO)
@@ -114,13 +113,13 @@ zpuino_fb_setcolreg(unsigned regno, unsigned red, unsigned green, unsigned blue,
 
 	/* fbi->fix.visual is always FB_VISUAL_TRUECOLOR */
 
-	/* We only handle 8 bits of each color. */
-	red >>= 8;
-	green >>= 8;
-	blue >>= 8;
+	/* We only handle 5 bits of each color. */
+	red >>= 5;
+	green >>= 5;
+	blue >>= 5;
 	palette[regno] = (red << RED_SHIFT) | (green << GREEN_SHIFT) |
 			 (blue << BLUE_SHIFT);
-#endif
+
 	return 0;
 }
 
@@ -151,17 +150,11 @@ zpuino_fb_blank(int blank_mode, struct fb_info *fbi)
 }
 
 
-static int zpuino_fb_mmap(struct fb_info*info, struct vm_area_struct * vma)
-{
-        return -ENOMEM;
-}
-
 static struct fb_ops zpuinofb_ops =
 {
 	.owner			= THIS_MODULE,
 	.fb_setcolreg		= zpuino_fb_setcolreg,
 	.fb_blank		= zpuino_fb_blank,
-//	.fb_mmap		= zpuino_fb_mmap,
 	.fb_fillrect		= cfb_fillrect,
 	.fb_copyarea		= cfb_copyarea,
 	.fb_imageblit		= cfb_imageblit,
@@ -170,6 +163,19 @@ static struct fb_ops zpuinofb_ops =
 /* ---------------------------------------------------------------------
  * Bus independent setup/teardown
  */
+
+static void zpuino_fb_deferred_io(struct fb_info *info,
+				  struct list_head *pagelist) {
+
+	struct zpuinofb_drvdata *drvdata = to_zpuinofb_drvdata(info);
+
+	flush_dcache_range( drvdata->info.fix.smem_start, drvdata->info.fix.smem_len );
+}
+
+static struct fb_deferred_io zpuino_defio = {
+	.delay		= HZ,
+	.deferred_io	= zpuino_fb_deferred_io,
+};
 
 static int zpuinofb_assign(struct device *dev,
 			   struct zpuinofb_drvdata *drvdata,
@@ -217,8 +223,8 @@ static int zpuinofb_assign(struct device *dev,
 	drvdata->info.fix.smem_len = fbsize;
 	drvdata->info.fix.line_length = pdata->xvirt * BYTES_PER_PIXEL;
 
-	//drvdata->info.pseudo_palette = drvdata->pseudo_palette;
-	drvdata->info.flags = FBINFO_DEFAULT;
+	drvdata->info.pseudo_palette = drvdata->pseudo_palette;
+	drvdata->info.flags = FBINFO_DEFAULT|FBINFO_VIRTFB;
 	drvdata->info.var = zpuino_fb_var;
 	//drvdata->info.var.height = pdata->screen_height_mm;
 	//drvdata->info.var.width = pdata->screen_width_mm;
@@ -226,6 +232,10 @@ static int zpuinofb_assign(struct device *dev,
 	drvdata->info.var.yres = pdata->yres;
 	drvdata->info.var.xres_virtual = pdata->xvirt;
 	drvdata->info.var.yres_virtual = pdata->yvirt;
+
+	drvdata->info.fbdefio = &zpuino_defio;
+        
+	fb_deferred_io_init(&drvdata->info);
 
 	/* Allocate a colour map */
 	rc = fb_alloc_cmap(&drvdata->info.cmap, PALETTE_ENTRIES_NO, 0);

@@ -48,7 +48,7 @@ static void __init zpu_console_write(struct console *con, const char *s, unsigne
 static struct console zpu_early_console = {
 	.name =		"earlyconsole",
 	.write =	zpu_console_write,
-	.flags =	CON_PRINTBUFFER | CON_BOOT,
+	.flags =	CON_PRINTBUFFER , /* | CON_BOOT */
 	.index =	-1,
 };
 
@@ -432,11 +432,15 @@ void __init setup_arch (char **cmdline_p)
 		       ((cpu_hz + 500) / 1000) / 1000,
 		       ((cpu_hz + 500) / 1000) % 1000);
 	}
-	strlcpy(boot_command_line,"root=/dev/mmcblk0p2 rootwait console=ttySZ0", COMMAND_LINE_SIZE);
+	strlcpy(boot_command_line,"root=/dev/mmcblk0p2 rootwait console=tty0 console=ttySZ0", COMMAND_LINE_SIZE);
 	strlcpy(command_line, boot_command_line, COMMAND_LINE_SIZE);
 	*cmdline_p = command_line;
 	parse_early_param();
 	setup_bootmem();
+
+#if defined(CONFIG_DUMMY_CONSOLE)
+	conswitchp = &dummy_con;
+#endif
 
 	paging_init();
 	resource_init();

@@ -110,10 +110,31 @@ cache_push:
     im ZPU_IO_SLOT(4) + 16
     store
     nop
-    nop
-    nop
     poppc
 .size cache_push, . - cache_push
+
+.globl dcache_push
+.type dcache_push, @function
+dcache_push:
+    im 4 /* Flush dcache, enable SRAM */
+    nop
+    im ZPU_IO_SLOT(4) + 16
+    store
+    poppc
+.size dcache_push, . - dcache_push
+
+.globl icache_push
+.type icache_push, @function
+icache_push:
+    im 2 /* Flush icache, enable SRAM */
+    nop
+    im ZPU_IO_SLOT(4) + 16
+    store
+    nop
+    poppc
+.size icache_push, . - icache_push
+
+
 
 .type handle_interrupt, @function
 .globl handle_interrupt
